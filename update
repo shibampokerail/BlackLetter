@@ -3,9 +3,9 @@
 set -e  # exit immediately if a command fails
 
 
-IMAGE_NAME="policy-AI:1.0.0"
+IMAGE_NAME="policy-ai:1.0.0"
 
-CONTAINER_NAME="policy-AI"
+CONTAINER_NAME="policy-ai"
 
 
 echo "PPulling latest code..."

@@ -7,7 +7,7 @@ from flask import Flask, request, jsonify, render_template, session, redirect, u
 from flask_cors import CORS
 from dotenv import load_dotenv
 from pypdf import PdfReader
-from google import genai
+# from google import genai
 from werkzeug.utils import secure_filename
 import uuid
 from flask import Response, stream_with_context, send_from_directory
