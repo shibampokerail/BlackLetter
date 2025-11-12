@@ -43,9 +43,9 @@ FAISS_INDEX_PATH = "faiss_index.idx"
 METADATA_PATH = "metadata.pkl"
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-FAISS_INDEX = None
-DOC_CHUNKS = []
-METADATA = []
+# FAISS_INDEX = None
+# DOC_CHUNKS = []
+# METADATA = []
 
 AI_MODEL = "gemini-2.5-flash"
 
@@ -86,30 +86,37 @@ def login_required(f):
     return decorated_function
 
 
+# REPLACE your old function with this one
+
 def build_or_load_index(force_rebuild=False):
     """
-    Builds a new FAISS index from documents in the UPLOAD_FOLDER or loads an existing one.
-    CORRECTED to use the new genai.embed_content function.
+    MODIFIED: Now loads from disk and RETURNS the index and metadata.
+    Does not use global variables.
     """
-    global FAISS_INDEX, DOC_CHUNKS, METADATA
-    print("\n--- Running build_or_load_index ---")
+    print("\n--- Running build_or_load_index (Stateless) ---")
 
     if force_rebuild and os.path.exists(FAISS_INDEX_PATH):
         print("Forcing rebuild: Deleting old index files.")
         if os.path.exists(FAISS_INDEX_PATH): os.remove(FAISS_INDEX_PATH)
         if os.path.exists(METADATA_PATH): os.remove(METADATA_PATH)
 
-    if os.path.exists(FAISS_INDEX_PATH) and os.path.exists(METADATA_PATH):
+    # If files exist and we are NOT forcing a rebuild, load and return them.
+    if os.path.exists(FAISS_INDEX_PATH) and os.path.exists(METADATA_PATH) and not force_rebuild:
         print(f"Loading existing index from {FAISS_INDEX_PATH}...")
-        FAISS_INDEX = faiss.read_index(FAISS_INDEX_PATH)
-        with open(METADATA_PATH, "rb") as f:
-            data = pickle.load(f)
-            DOC_CHUNKS = data["chunks"]
-            METADATA = data["metadata"]
-        print(f"Index loaded successfully. Total vectors: {FAISS_INDEX.ntotal}")
-        return
+        try:
+            faiss_index = faiss.read_index(FAISS_INDEX_PATH)
+            with open(METADATA_PATH, "rb") as f:
+                data = pickle.load(f)
+                doc_chunks = data["chunks"]
+                metadata = data["metadata"]
+            print(f"Index loaded successfully. Total vectors: {faiss_index.ntotal}")
+            return faiss_index, doc_chunks, metadata
+        except Exception as e:
+            print(f"Error loading index files: {e}. Rebuilding...")
+            # If loading fails, proceed to rebuild.
 
-    print("No existing index found. Building a new one...")
+    # --- Rebuild Logic (largely the same) ---
+    print("Building a new index...")
     all_chunks = []
     all_metadata = []
 
@@ -117,9 +124,8 @@ def build_or_load_index(force_rebuild=False):
     print(f"Found {len(doc_files)} documents to index: {doc_files}")
 
     if not doc_files:
-        print("No documents found in the upload folder. Index will be empty.")
-        FAISS_INDEX, DOC_CHUNKS, METADATA = None, [], []
-        return
+        print("No documents found in the upload folder. Returning empty index.")
+        return None, [], []
 
     for doc_file in doc_files:
         path = os.path.join(app.config['UPLOAD_FOLDER'], doc_file)
@@ -135,29 +141,18 @@ def build_or_load_index(force_rebuild=False):
                             if len(para.strip()) > 50:
                                 all_chunks.append(para.strip())
                                 all_metadata.append({"source": doc_file, "page": page_num + 1})
-            elif doc_file.endswith('.txt'):
-                with open(path, 'r', encoding='utf-8') as f:
-                    text = f.read()
-                    paragraphs = text.split('\n\n')
-                    for para in paragraphs:
-                        if len(para.strip()) > 50:
-                            all_chunks.append(para.strip())
-                            all_metadata.append({"source": doc_file, "page": 1})
+            # ... (your .txt file logic can remain here if you have it)
         except Exception as e:
             print(f"   [ERROR] Failed to process {doc_file}: {e}")
 
     if not all_chunks:
-        print("No valid text chunks were extracted. Index cannot be built.")
-        FAISS_INDEX, DOC_CHUNKS, METADATA = None, [], []
-        return
+        print("No valid text chunks were extracted. Returning empty index.")
+        return None, [], []
 
-    DOC_CHUNKS = all_chunks
-    METADATA = all_metadata
-
-    print(f"Generated {len(DOC_CHUNKS)} total chunks. Now generating embeddings...")
+    print(f"Generated {len(all_chunks)} total chunks. Now generating embeddings...")
     response = genai.embed_content(
         model="models/text-embedding-004",
-        content=DOC_CHUNKS,
+        content=all_chunks,
         task_type="RETRIEVAL_DOCUMENT"
     )
 
@@ -165,22 +160,35 @@ def build_or_load_index(force_rebuild=False):
     embedding_matrix = np.array(embeddings, dtype='float32')
 
     embedding_dimension = embedding_matrix.shape[1]
-    FAISS_INDEX = faiss.IndexFlatL2(embedding_dimension)
-    FAISS_INDEX.add(embedding_matrix)
+    new_faiss_index = faiss.IndexFlatL2(embedding_dimension)
+    new_faiss_index.add(embedding_matrix)
 
     print(f"Saving index and metadata to {FAISS_INDEX_PATH}...")
-    faiss.write_index(FAISS_INDEX, FAISS_INDEX_PATH)
+    faiss.write_index(new_faiss_index, FAISS_INDEX_PATH)
     with open(METADATA_PATH, "wb") as f:
-        pickle.dump({"chunks": DOC_CHUNKS, "metadata": METADATA}, f)
-    print(f"Index built and saved successfully. Total vectors: {FAISS_INDEX.ntotal}")
+        pickle.dump({"chunks": all_chunks, "metadata": all_metadata}, f)
 
+    print(f"Index built and saved successfully. Total vectors: {new_faiss_index.ntotal}")
+    return new_faiss_index, all_chunks, all_metadata
+
+
+# REPLACE your old function with this one
 
 def answer_query_stream(question, selected_docs, k=8):
     """
-    Complete and final streaming function, corrected to use the new
-    genai.embed_content function for the query.
+    MODIFIED: Now loads the index at the start of every request to be stateless.
     """
     import json
+
+    # --- ADD THIS BLOCK AT THE VERY BEGINNING ---
+    # Load the latest index and metadata from disk every time.
+    try:
+        faiss_index, doc_chunks, metadata = build_or_load_index()
+    except Exception as e:
+        print(f"FATAL: Could not load index on the fly: {e}")
+        faiss_index, doc_chunks, metadata = None, [], []
+    # --- END OF ADDED BLOCK ---
+
 
     ANALYTICAL_QUESTIONS = [
         "Identify risks and policy gaps within the documents.",
@@ -195,15 +203,17 @@ def answer_query_stream(question, selected_docs, k=8):
         if "how are you" in question.lower():
             response_text = "I'm just a program, but I'm ready to assist you!"
         yield json.dumps({"type": "token", "data": response_text}) + '\n'
-        metadata = {"sources": [], "follow_up": ANALYTICAL_QUESTIONS}
-        yield json.dumps({"type": "metadata", "data": metadata}) + '\n'
+        metadata_payload = {"sources": [], "follow_up": ANALYTICAL_QUESTIONS}
+        yield json.dumps({"type": "metadata", "data": metadata_payload}) + '\n'
         return
 
-    if FAISS_INDEX is None or FAISS_INDEX.ntotal == 0:
+    # --- UPDATED LOGIC ---
+    # Check the locally loaded faiss_index, not the global one.
+    if faiss_index is None or faiss_index.ntotal == 0:
         error_message = "The document index is empty. Please upload documents first."
         yield json.dumps({"type": "token", "data": error_message}) + '\n'
-        metadata = {"sources": [], "follow_up": []}
-        yield json.dumps({"type": "metadata", "data": metadata}) + '\n'
+        metadata_payload = {"sources": [], "follow_up": []}
+        yield json.dumps({"type": "metadata", "data": metadata_payload}) + '\n'
         return
 
     response = genai.embed_content(
@@ -214,12 +224,14 @@ def answer_query_stream(question, selected_docs, k=8):
 
     query_embedding = np.array([response['embedding']], dtype='float32')
 
-    distances, indices = FAISS_INDEX.search(query_embedding, FAISS_INDEX.ntotal)
+    # Use the locally loaded faiss_index
+    distances, indices = faiss_index.search(query_embedding, faiss_index.ntotal)
 
     filtered_results = []
     distance_threshold = 1.5 if question in ANALYTICAL_QUESTIONS else 1.2
     for i, dist in zip(indices[0], distances[0]):
-        if METADATA[i]['source'] in selected_docs and dist < distance_threshold:
+        # Use the locally loaded metadata
+        if metadata[i]['source'] in selected_docs and dist < distance_threshold:
             filtered_results.append({'index': i})
 
     prompt_to_use = ""
@@ -230,8 +242,9 @@ def answer_query_stream(question, selected_docs, k=8):
         sources = []
     else:
         top_k_indices = [res['index'] for res in filtered_results[:k]]
-        docs = [DOC_CHUNKS[i] for i in top_k_indices]
-        sources = sorted(list(set([f"{METADATA[i]['source']} (Page {METADATA[i]['page']})" for i in top_k_indices])))
+        # Use locally loaded doc_chunks and metadata
+        docs = [doc_chunks[i] for i in top_k_indices]
+        sources = sorted(list(set([f"{metadata[i]['source']} (Page {metadata[i]['page']})" for i in top_k_indices])))
         context = "\n\n---\n\n".join(docs)
 
         if question in ANALYTICAL_QUESTIONS:
@@ -243,28 +256,17 @@ def answer_query_stream(question, selected_docs, k=8):
 
     print(f"\n>>> Generating content...")
     try:
-        stream = model.generate_content(
-            prompt_to_use,
-            stream=True
-        )
-
+        stream = model.generate_content(prompt_to_use, stream=True)
         for chunk in stream:
             if hasattr(chunk, 'text') and chunk.text:
                 data = {"type": "token", "data": chunk.text}
                 yield json.dumps(data) + '\n'
-
         print(">>> Stream finished. Yielding metadata.")
-        final_metadata = {
-            "type": "metadata",
-            "data": {
-                "sources": sources,
-                "follow_up": ANALYTICAL_QUESTIONS
-            }
-        }
+        final_metadata = {"type": "metadata", "data": {"sources": sources, "follow_up": ANALYTICAL_QUESTIONS}}
         yield json.dumps(final_metadata) + '\n'
     except Exception as e:
         print(f"\n--- ERROR DURING STREAM GENERATION: {e} ---\n")
-        error_message = f"An error occurred with the AI model. Please check the server logs."
+        error_message = "An error occurred with the AI model. Please check the server logs."
         data = {"type": "token", "data": error_message}
         yield json.dumps(data) + '\n'
         final_metadata = {"type": "metadata", "data": {"sources": [], "follow_up": []}}

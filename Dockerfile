@@ -17,4 +17,4 @@ COPY . .
 EXPOSE 8000
 
 # Default command to run the app with Gunicorn
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:8000", "main:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--worker-class", "gevent", "--timeout", "180", "main:app"]
