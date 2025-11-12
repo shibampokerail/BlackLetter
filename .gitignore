@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+
+# Virtual environment
+venv/
+.env
+
+# Ignore model and large files
+LLMS/
+
+# Ignore data and generated files
+*.pdf
+*.idx
+*.pkl
+*.gguf
+
+# IDE settings
+.idea/
+.vscode/
+
+# OS specific files
+.DS_Store
+Thumbs.db
