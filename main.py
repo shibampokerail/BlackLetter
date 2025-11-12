@@ -47,9 +47,8 @@ FAISS_INDEX = None
 DOC_CHUNKS = []
 METADATA = []
 
-AI_MODEL = "gemini-1.5-flash"
+AI_MODEL = "gemini-2.5-flash"
 
-# Initialize the GenerativeModel client
 try:
     genai.configure(api_key=API_KEY)
     model = genai.GenerativeModel(AI_MODEL)
