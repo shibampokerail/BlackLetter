@@ -236,7 +236,7 @@ def answer_query_stream(question, selected_docs, k=8):
 
         if question in ANALYTICAL_QUESTIONS:
             print("Using ANALYTICAL prompt...")
-            prompt_to_use = f"""{SYSTEM_PROMPT}\n\nYou are acting as an expert policy analyst... (rest of your analytical prompt here)\n\nContext from policy documents:\n{context}\n\nUser's Analytical Request:\n"{question}"\n\nYour detailed analysis:"""
+            prompt_to_use = f"""{SYSTEM_PROMPT}\n\nYou are acting as an expert policy analyst... \n\nContext from policy documents:\n{context}\n\nUser's Analytical Request:\n"{question}"\n\nYour detailed analysis:"""
         else:
             print("Using standard RAG prompt...")
             prompt_to_use = f"""{SYSTEM_PROMPT}\n\nYou MUST answer the question using ONLY the provided context...\n\nContext from policy documents:\n{context}\n\nQuestion:\n{question}\n\nAnswer:"""

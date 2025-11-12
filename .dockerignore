@@ -1,0 +1,35 @@
+# Ignore Python cache and build files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+
+# Ignore virtual environment
+venv/
+.env
+
+# Ignore model and data files
+LLMS/
+*.gguf
+*.pdf
+*.idx
+*.pkl
+
+# Ignore test and temporary files
+test/
+tmp/
+*.tmp
+
+# Ignore IDE and OS-specific files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Git-related
+.git
+.gitignore
+
+# Docker-related (don’t copy dockerignore itself)
+.dockerignore
