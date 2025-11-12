@@ -33,7 +33,7 @@ docker build --network=host -t $IMAGE_NAME .
 
 echo " Starting new container in detached mode with host networking..."
 
-docker run -d --network=host $IMAGE_NAME
+docker run -d --network=host --env-file .env $IMAGE_NAME
 
 
 echo " Deployment complete!"
