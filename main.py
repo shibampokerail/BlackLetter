@@ -2,7 +2,8 @@ import os
 import numpy as np
 import faiss
 import pickle
-from flask import Flask, request, jsonify, render_template
+# UPDATED IMPORTS: Added session, redirect, url_for, flash, and wraps
+from flask import Flask, request, jsonify, render_template, session, redirect, url_for, flash
 from flask_cors import CORS
 from dotenv import load_dotenv
 from pypdf import PdfReader
@@ -13,7 +14,7 @@ from flask import Response, stream_with_context, send_from_directory
 import time
 import json
 import google.generativeai as genai
-
+from functools import wraps  # Added for login decorator
 
 load_dotenv()
 os.environ["GENAI_API_VERIFY_SSL"] = "false"
@@ -21,36 +22,46 @@ API_KEY = os.getenv("GOOGLE_API_KEY")
 if not API_KEY:
     raise ValueError("GOOGLE_API_KEY environment variable not set.")
 
-
 app = Flask(__name__)
 CORS(app)
 app.config['UPLOAD_FOLDER'] = 'documents'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 ALLOWED_EXTENSIONS = {'pdf', 'txt'}
 
+# --- NEW: SECRET KEY FOR SESSION MANAGEMENT ---
+# A secret key is required for Flask sessions to work.
+# In production, use a long, random string and store it securely.
+app.config['SECRET_KEY'] = 'your-super-secret-key-that-you-should-change'
+
+# --- NEW: HARDCODED USER CREDENTIALS ---
+# For this simple example, we'll hardcode the login credentials.
+# Replace these with your desired username and password.
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 
 FAISS_INDEX_PATH = "faiss_index.idx"
 METADATA_PATH = "metadata.pkl"
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-
-
-
-
 FAISS_INDEX = None
 DOC_CHUNKS = []
 METADATA = []
 
-AI_MODEL = "gemini-2.5-flash"
+AI_MODEL = "gemini-1.5-flash"
 
-model = genai.GenerativeModel(AI_MODEL)
-
-
+# Initialize the GenerativeModel client
+try:
+    genai.configure(api_key=API_KEY)
+    model = genai.GenerativeModel(AI_MODEL)
+except Exception as e:
+    print(f"Error configuring GenerativeAI: {e}")
+    # Handle the error appropriately, maybe exit or use a fallback
+    model = None
 
 SYSTEM_PROMPT = """
 You are a specialized AI assistant for a hospital.
 Your primary function is to answer questions based on the hospital's internal policy documents.
-However, you can also engage in general conversation and use knowledge outside the contexts whenever necessary.
+However, you can also engage in general conversation.
 
 Organization Information (Context):
 - The organization is a hospital located in Illinois, USA with Over 4000 employees.
@@ -60,7 +71,21 @@ Organization Information (Context):
 """
 
 
-# REPLACE this entire function in your app.py
+# --- NEW: LOGIN REQUIRED DECORATOR ---
+def login_required(f):
+    """
+    A decorator to ensure a user is logged in before accessing a route.
+    Redirects to the login page if the user is not authenticated.
+    """
+
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'logged_in' not in session:
+            return redirect(url_for('login', next=request.url))
+        return f(*args, **kwargs)
+
+    return decorated_function
+
 
 def build_or_load_index(force_rebuild=False):
     """
@@ -131,14 +156,12 @@ def build_or_load_index(force_rebuild=False):
     METADATA = all_metadata
 
     print(f"Generated {len(DOC_CHUNKS)} total chunks. Now generating embeddings...")
-    # THE FIX: Use the new, correct embed_content function
     response = genai.embed_content(
         model="models/text-embedding-004",
         content=DOC_CHUNKS,
         task_type="RETRIEVAL_DOCUMENT"
     )
 
-    # THE FIX: Access the results from the response dictionary
     embeddings = response['embedding']
     embedding_matrix = np.array(embeddings, dtype='float32')
 
@@ -152,100 +175,6 @@ def build_or_load_index(force_rebuild=False):
         pickle.dump({"chunks": DOC_CHUNKS, "metadata": METADATA}, f)
     print(f"Index built and saved successfully. Total vectors: {FAISS_INDEX.ntotal}")
 
-# def answer_query(question, selected_docs, k=8):  # Increased k for better analysis context
-#     from google import genai
-#     client = genai.Client(api_key=API_KEY)
-#     ANALYTICAL_QUESTIONS = [
-#         "Identify gaps or missing policies?",
-#         "Highlight non-compliance or outdated areas?",
-#         "Compare to industry best practices or standards?",
-#         "Suggest changes or improvements?",
-#     ]
-#
-#
-#     greetings = ["hi", "hello", "hey", "how are you"]
-#     if question.lower().strip() in greetings:
-#         prompt = f"{SYSTEM_PROMPT}\n\nThe user just said '{question}'. Respond politely and briefly."
-#         response = client.models.generate_content(model=AI_MODEL, contents=prompt)
-#         return {"answer": response.text, "sources": [], "follow_up": ANALYTICAL_QUESTIONS}
-#
-#     if FAISS_INDEX is None or FAISS_INDEX.ntotal == 0:
-#         return {"answer": "The document index is empty. Please upload documents first.", "sources": [], "follow_up": []}
-#
-#     # --- RAG Context Retrieval (same for both query types) ---
-#     response = client.models.embed_content(model="text-embedding-004", contents=[question])
-#     query_embedding = np.array(response.embeddings[0].values, dtype='float32').reshape(1, -1)
-#
-#     # We retrieve context regardless, as even analytical questions need it
-#     distances, indices = FAISS_INDEX.search(query_embedding, FAISS_INDEX.ntotal)
-#
-#     filtered_results = []
-#     # A looser threshold for analytical questions to gather broader context
-#     distance_threshold = 1.5 if question in ANALYTICAL_QUESTIONS else 1.2
-#
-#     for i, dist in zip(indices[0], distances[0]):
-#         if METADATA[i]['source'] in selected_docs and dist < distance_threshold:
-#             filtered_results.append({'index': i})
-#
-#     if not filtered_results:
-#         # Fallback to conversational response if no context is found
-#         prompt = f"{SYSTEM_PROMPT}\n\nThe user asked: '{question}'. There are no relevant policy documents found. Answer as a general AI assistant."
-#         response = client.models.generate_content(model=AI_MODEL, contents=prompt)
-#         return {"answer": response.text, "sources": [], "follow_up": ANALYTICAL_QUESTIONS}
-#
-#     # --- Prompt Routing: Choose the right prompt for the job ---
-#     top_k_indices = [res['index'] for res in filtered_results[:k]]
-#     docs = [DOC_CHUNKS[i] for i in top_k_indices]
-#     sources = sorted(list(set([f"{METADATA[i]['source']} (Page {METADATA[i]['page']})" for i in top_k_indices])))
-#     context = "\n\n---\n\n".join(docs)
-#
-#     prompt_to_use = ""
-#
-#     if question in ANALYTICAL_QUESTIONS:
-#         # If it's an analytical question, use the new, permissive prompt
-#         print("Using ANALYTICAL prompt...")
-#         prompt_to_use = f"""{SYSTEM_PROMPT}
-#
-# You are acting as an expert policy analyst and healthcare compliance consultant.
-# Your task is to analyze the provided internal policy documents and answer the user's request.
-# You MUST base your analysis on the provided context, but you are PERMITTED and ENCOURAGED to use your external knowledge of industry best practices, standards, and regulations (like HIPAA) to identify gaps, suggest improvements, or make comparisons.
-#
-# Context from policy documents:
-# {context}
-#
-# User's Analytical Request:
-# "{question}"
-#
-# Your detailed analysis:
-# """
-#     else:
-#         # Otherwise, use the standard, strict RAG prompt
-#         print("Using standard RAG prompt...")
-#         prompt_to_use = f"""{SYSTEM_PROMPT}
-#
-# You MUST answer the question using ONLY the provided context.
-# If the context is insufficient, state that you cannot answer from the provided documents. Do not use outside knowledge.
-#
-# Context from policy documents:
-# {context}
-#
-# Question:
-# {question}
-#
-# Answer:
-# """
-#
-#     main_response = client.models.generate_content(model=AI_MODEL, contents=prompt_to_use)
-#     answer = main_response.text
-#
-#     # Return the answer with the STATIC list of follow-up questions
-#     return {"answer": answer, "sources": sources, "follow_up": ANALYTICAL_QUESTIONS}
-
-
-#
-# DELETE your old answer_query_stream function and REPLACE it with this one.
-#
-# REPLACE this entire function in your app.py
 
 def answer_query_stream(question, selected_docs, k=8):
     """
@@ -278,14 +207,12 @@ def answer_query_stream(question, selected_docs, k=8):
         yield json.dumps({"type": "metadata", "data": metadata}) + '\n'
         return
 
-    # THE FIX: Use the new, correct embed_content function for the query
     response = genai.embed_content(
         model="models/text-embedding-004",
         content=question,
         task_type="RETRIEVAL_QUERY"
     )
 
-    # THE FIX: Access the single embedding and ensure it's a 2D array for FAISS
     query_embedding = np.array([response['embedding']], dtype='float32')
 
     distances, indices = FAISS_INDEX.search(query_embedding, FAISS_INDEX.ntotal)
@@ -343,92 +270,103 @@ def answer_query_stream(question, selected_docs, k=8):
         yield json.dumps(data) + '\n'
         final_metadata = {"type": "metadata", "data": {"sources": [], "follow_up": []}}
         yield json.dumps(final_metadata) + '\n'
-# --- Add placeholder functions if needed for copy-pasting ---
+
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-# Your Flask routes go here...
+# --- NEW: LOGIN AND LOGOUT ROUTES ---
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    """
+    Handles the login process.
+    GET: Displays the login page.
+    POST: Validates credentials and logs the user in.
+    """
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
+            session['logged_in'] = True
+            flash('You were successfully logged in!', 'success')
+            # Redirect to the main chat page after login
+            return redirect(url_for('index'))
+        else:
+            flash('Invalid credentials. Please try again.', 'danger')
+    return render_template('login.html')
+
+
+@app.route('/logout')
+def logout():
+    """
+    Logs the user out by clearing the session.
+    """
+    session.pop('logged_in', None)
+    flash('You were logged out.', 'info')
+    return redirect(url_for('login'))
+
+
+# --- PROTECTED FLASK ROUTES ---
+# The @login_required decorator is added to each route
+# that should only be accessible after a successful login.
+
 @app.route("/")
+@login_required
 def index():
     return render_template("index.html")
 
+
+@app.route("/chat")
+@login_required
+def chat():
+    return render_template("chat.html")
+
+
+@app.route("/viewer")
+@login_required
+def viewer_page():
+    return render_template("viewer.html")
+
+
 @app.route("/documents", methods=["GET"])
+@login_required
 def get_documents():
     docs = [f for f in os.listdir(app.config['UPLOAD_FOLDER']) if allowed_file(f)]
     return jsonify(sorted(docs))
 
 
 @app.route("/upload", methods=["POST"])
+@login_required
 def upload_document():
-    if 'file' in request.files:
-        file = request.files['file']
-        if file.filename == '' or not allowed_file(file.filename):
-            return jsonify({"error": "Invalid file type or no file selected"}), 400
-        filename = secure_filename(file.filename)
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-    elif 'text_content' in request.form:
-        text = request.form['text_content']
-        if not text.strip():
-            return jsonify({"error": "Text content cannot be empty"}), 400
-        filename = f"text-{uuid.uuid4().hex}.txt"
-        with open(os.path.join(app.config['UPLOAD_FOLDER'], filename), 'w', encoding='utf-8') as f:
-            f.write(text)
-    else:
-        return jsonify({"error": "No file or text content provided"}), 400
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part in the request"}), 400
+
+    file = request.files['file']
+    if file.filename == '' or not allowed_file(file.filename):
+        return jsonify({"error": "Invalid file type or no file selected"}), 400
+
+    filename = secure_filename(file.filename)
+    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
     build_or_load_index(force_rebuild=True)
-    return jsonify({"success": f"'{filename}' uploaded and index rebuilt."})
+
+    return jsonify({"success": f"'{filename}' uploaded successfully."})
 
 
-def test_stream_generator():
-    """
-    A dead-simple generator that streams hardcoded data.
-    This helps us test the connection without involving the AI model.
-    """
-    test_words = ["This ", "is ", "a ", "direct ", "test ", "from ", "the ", "server. "]
+@app.route("/uploads/<path:filename>")
+@login_required
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
-    # 1. Stream the text tokens
-    for word in test_words:
-        print(f"SERVER YIELDING: {word}")  # You will see this in your Flask terminal
-        data = {"type": "token", "data": word}
-        yield json.dumps(data) + '\n'
-        time.sleep(0.1)  # Slow it down so we can see it stream
-
-    # 2. Stream the final metadata
-    print("SERVER YIELDING METADATA")
-    metadata = {
-        "sources": ["Test Source 1", "Test Source 2"],
-        "follow_up": ["Did this test work?", "Go to next step"]
-    }
-    final_data = {"type": "metadata", "data": metadata}
-    yield json.dumps(final_data) + '\n'
-    print("SERVER FINISHED YIELDING")
-
-
-# TEMPORARILY REPLACE YOUR /ask ROUTE WITH THIS ONE
-# @app.route("/ask", methods=["POST"])
-# def ask():
-#     """
-#     Temporary /ask route for debugging the stream connection.
-#     """
-#     print("\n--- /ask DEBUG ROUTE HIT ---")
-#     return Response(stream_with_context(test_stream_generator()), content_type='application/x-ndjson')
 
 @app.route("/ask", methods=["POST"])
+@login_required
 def ask():
-    """
-    This is the new streaming version of your /ask route.
-    """
     data = request.get_json(force=True)
     q = data.get("query")
-
-    print(q)
-
-
     selected_docs = data.get("selected_docs", [])
-
-    print(selected_docs)
 
     if not q:
         return jsonify({"error": "Query required"}), 400
@@ -436,38 +374,18 @@ def ask():
         return jsonify({"error": "Please select at least one document to search."}), 400
 
     try:
-
         return Response(stream_with_context(answer_query_stream(q, selected_docs)),
                         content_type='application/x-ndjson')
     except Exception as e:
         import traceback
         traceback.print_exc()
-
         error_payload = json.dumps({"error": str(e)})
         return Response(error_payload, status=500, content_type='application/json')
 
-@app.route("/review")
-def review_page():
-    """
-    Renders the new PDF review page.
-    """
-    return render_template("review.html")
-
-@app.route("/uploads/<path:filename>")
-def uploaded_file(filename):
-    """
-    Serves a specific file from the upload folder.
-    This is necessary for PDF.js to be able to fetch the document.
-    """
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
-
 
 @app.route("/analyze_document", methods=["POST"])
+@login_required
 def analyze_document():
-    """
-    Takes a filename, reads the full PDF text, and asks the AI to
-    identify outdated sections and areas for improvement.
-    """
     data = request.get_json()
     filename = data.get("filename")
 
@@ -478,43 +396,49 @@ def analyze_document():
     if not os.path.exists(filepath):
         return jsonify({"error": "File not found."}), 404
 
-    print(f"Analyzing document: {filename}")
+    print(f"Analyzing document for summary & findings: {filename}")
     full_text = ""
     try:
         reader = PdfReader(filepath)
+        text_limit = 30000
         for page in reader.pages:
-            full_text += page.extract_text() + "\n\n"
+            text = page.extract_text()
+            if text:
+                full_text += text + "\n\n"
+            if len(full_text) > text_limit:
+                break
     except Exception as e:
         return jsonify({"error": f"Failed to read PDF: {str(e)}"}), 500
 
-    # This is a highly specific prompt designed to get structured JSON output.
-    # It's crucial for making the highlighting feature work reliably.
     PROMPT_FOR_ANALYSIS = f"""
         You are a professional policy analyst for a hospital in Illinois, USA.
-        Your task is to review the following hospital policy document and identify two types of issues:
-        1.  **Outdated Sections**: Find specific sentences or phrases that are factually outdated (e.g., refer to old technology like 'Internet Explorer', old dates, or deprecated procedures).
-        2.  **Suggested Improvements**: Find specific sections where the policy could be improved, clarified, or modernized (e.g., suggesting a digital ticketing system instead of phone calls).
+        Your task is to review the following hospital policy document and provide a complete analysis.
 
-        **CRITICAL**: You MUST return your analysis as a single, valid JSON object. Do not include any text or markdown formatting before or after the JSON object.
+        **CRITICAL**: You MUST return your analysis as a single, valid JSON object.
+        Do not include any text, notes, or markdown formatting like ```json before or after the JSON object.
 
-        The JSON object must have two keys: "outdated" and "improvements".
-        Each key should contain a list of objects.
-        Each object in the list must have two keys:
-        - "quote": The exact, verbatim text from the document that is outdated or needs improvement. This must be a direct copy-paste from the text.
-        - "explanation": A brief explanation of why it's outdated or how it could be improved.
+        The JSON object must have three top-level keys:
+        1.  "summary": A concise 2-3 paragraph summary of the document's purpose, scope, and key points.
+        2.  "outdated": A list of objects, where each object identifies a specific outdated section.
+        3.  "improvements": A list of objects, where each object identifies a section that could be improved.
+
+        For the "outdated" and "improvements" lists, each object must have two keys:
+        - "quote": The exact, verbatim text from the document. This must be a direct copy-paste.
+        - "explanation": A brief explanation of the issue or suggestion.
 
         Here is an example of the required JSON format:
         {{
+          "summary": "This document outlines the hospital's policy regarding the use of information technology resources...",
           "outdated": [
             {{
               "quote": "All employees must use Internet Explorer for web browsing.",
-              "explanation": "Internet Explorer is a deprecated browser with security vulnerabilities and should be replaced with a modern browser standard."
+              "explanation": "Internet Explorer is a deprecated browser with security vulnerabilities..."
             }}
           ],
           "improvements": [
             {{
               "quote": "Employees may report issues via phone call to the IT department.",
-              "explanation": "Consider implementing a modern ticketing system (e.g., Jira, Zendesk) for better tracking and resolution of IT issues."
+              "explanation": "Consider implementing a modern ticketing system..."
             }}
           ]
         }}
@@ -526,26 +450,24 @@ def analyze_document():
     """
 
     try:
-        # Using the Gemini model to get the analysis
-        response = model.generate_content(PROMPT_FOR_ANALYSIS)
+        generation_config = genai.types.GenerationConfig(
+            response_mime_type="application/json"
+        )
+        model_for_analysis = genai.GenerativeModel(AI_MODEL, generation_config=generation_config)
 
-        # Clean the response text to ensure it's valid JSON
-        # The model sometimes wraps the JSON in ```json ... ```
-        cleaned_response = response.text.strip().replace("```json", "").replace("```", "").strip()
-
-        # Parse the JSON string into a Python dictionary
-        analysis_result = json.loads(cleaned_response)
-
+        response = model_for_analysis.generate_content(PROMPT_FOR_ANALYSIS)
+        analysis_result = json.loads(response.text)
         return jsonify(analysis_result)
 
-    except json.JSONDecodeError:
-        print("\n--- ERROR: Failed to decode JSON from AI response ---")
-        print(f"Raw response was:\n{response.text}\n")
+    except (json.JSONDecodeError, ValueError) as e:
+        print(f"\n--- ERROR: Failed to decode JSON from AI response. Error: {e} ---")
+        print(f"Raw response was:\n{getattr(response, 'text', 'No text in response')}\n")
         return jsonify({"error": "AI returned an invalid analysis format. Please try again."}), 500
     except Exception as e:
         print(f"An error occurred during AI analysis: {e}")
         return jsonify({"error": "An unexpected error occurred with the AI model."}), 500
 
+
 if __name__ == "__main__":
     build_or_load_index()
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=8000, debug=False)

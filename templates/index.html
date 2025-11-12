@@ -3,51 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BlackL≡tter - Chat</title>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<!--    <title>BlackL≡tter - Policy Compliance</title>-->
+    <title>Policy AI</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-        /* --- THEME COLORS (Unchanged) --- */
+        /* --- THEME COLORS --- */
         :root {
-            --ease-in-out-quad: cubic-bezier(0.455, 0.03, 0.515, 0.955);
             --ease-out-cubic: cubic-bezier(0.215, 0.610, 0.355, 1.000);
-            --light-bg: #f9fafb;
-            --light-bg-secondary: #f3f4f6;
-            --light-panel-bg: #ffffff;
-            --light-text: #111827;
-            --light-text-subtle: #6b7280;
-            --light-border: #e5e7eb;
-            --light-border-interactive: #d1d5db;
-            --light-primary: #4f46e5;
-            --light-primary-light: #e0e7ff;
-            --light-primary-text: #ffffff;
-            --light-error: #ef4444;
             --dark-bg: #111827;
             --dark-bg-secondary: #1f2937;
             --dark-panel-bg: #1a2330;
             --dark-text: #f9fafb;
             --dark-text-subtle: #9ca3af;
             --dark-border: #374151;
-            --dark-border-interactive: #4b5563;
-            --dark-primary: #818cf8;
+            --dark-primary: #283654;
             --dark-primary-light: #3730a3;
             --dark-primary-text: #ffffff;
             --dark-error: #f87171;
-        }
-
-        [data-theme="light"] {
-            --c-bg: var(--light-bg);
-            --c-bg-secondary: var(--light-bg-secondary);
-            --c-panel-bg: var(--light-panel-bg);
-            --c-text: var(--light-text);
-            --c-text-subtle: var(--light-text-subtle);
-            --c-border: var(--light-border);
-            --c-border-interactive: var(--light-border-interactive);
-            --c-primary: var(--light-primary);
-            --c-primary-light: var(--light-primary-light);
-            --c-primary-text: var(--light-primary-text);
-            --c-error: var(--light-error);
         }
 
         [data-theme="dark"] {
@@ -57,536 +30,401 @@
             --c-text: var(--dark-text);
             --c-text-subtle: var(--dark-text-subtle);
             --c-border: var(--dark-border);
-            --c-border-interactive: var(--dark-border-interactive);
             --c-primary: var(--dark-primary);
             --c-primary-light: var(--dark-primary-light);
             --c-primary-text: var(--dark-primary-text);
-            --c-error: var(--dark-error);
         }
 
         *, *::before, *::after { box-sizing: border-box; }
 
-        /* --- DESK SCENE SETUP --- */
         body {
             font-family: 'Inter', sans-serif;
             margin: 0;
-            height: 100vh;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
+            color: var(--c-text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            /* Dark wood table background with a dimming overlay */
             background-color: #3a2f27;
-            background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"%3E%3Cg fill-rule="evenodd"%3E%3Cg fill="%2341352c" fill-opacity="0.4"%3E%3Cpath opacity=".5" d="M96 95h4v1h-4v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h16v9h1v-9h9v9h1v-9h9v9h1v-9h9v9h1v-9h9v9h1v-9h9v9h1v-9h9v9h1v-9h9v9h1v-9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9zm-1 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-16-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm16-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-16-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm16-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-16-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm16-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-16-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9z"/%3E%3Cpath d="M6 5V0h1v5h94v1H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');
+            background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"%3E%3Cg fill-rule="evenodd"%3E%3Cg fill="%2341352c" fill-opacity="0.4"%3E%3Cpath opacity=".5" d="M96 95h4v1h-4v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h16v9h1v-9h9v9h1v-9h9v9h1v-9h9v9h1v-9h9v9h1v-9h9v9h1v-9h9v9h1v-9h9v9h1v-9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9zm-1 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-16-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm16-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-16-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm16-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-16-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm16-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-16-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9z"/%3E%3Cpath d="M6 5V0h1v5h94v1H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');
         }
 
+        /* --- DESKTOP SCENE LAYOUT --- */
         .desktop-scene {
             position: relative;
             width: 100%;
-            max-width: 1600px;
-            height: 100%;
+            min-height: 100vh;
+            padding: 2rem;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        /* --- TABLET DEVICE STYLING --- */
-        .tablet-device {
+        /* --- PAPER STACK EFFECT --- */
+        .main-content-paper {
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            margin: 0;
+            max-width: 1000px;
+            height: 120vh;
             width: 100%;
-            max-width: 960px;
-            height: 90vh;
-            max-height: 800px;
-            background-color: #05080d;
-            border-radius: 40px;
-            padding: 14px;
-            box-shadow: 0 30px 60px -15px rgba(0,0,0,0.5), 0 0 0 2px #111;
-            display: flex;
-            z-index: 50;
-        }
-
-        .tablet-screen {
-            flex-grow: 1;
-            background-color: var(--c-bg);
-            border-radius: 30px;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+            padding: 60px;
             position: relative;
-<!--            box-shadow: 0 0 20px 5px rgba(129, 140, 248, 0.2), 0 0 10px 2px rgba(129, 140, 248, 0.15) inset;-->
+            z-index: 10;
+            text-align: left;
+            border-radius: 4px;
+            transform: translateX(5%);
+            background-color: #dedede;
+            background-image: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="4" height="4" viewBox="0 0 4 4"%3E%3Cpath fill="%234a5568" fill-opacity="0.1" d="M1 3h1v1H1V3zm2-2h1v1H3V1z"%3E%3C/path%3E%3C/svg%3E');
+            color: #2d3748;
         }
-
-        /* --- STICKY NOTE STYLING --- */
-        .sticky-note {
+        .main-content-paper:before, .main-content-paper:after {
+            content: "";
+            height: 98%;
             position: absolute;
-            padding: 20px;
-            background-color: #fefcbf;
-            color: #374151;
-            box-shadow: 0 10px 15px rgba(0,0,0,0.2);
-            transition: all 0.3s var(--ease-out-cubic);
-            z-index: 25;
-            border-bottom: 1px solid rgba(0,0,0,0.1);
+            width: 100%;
+            z-index: -1;
+            border-radius: 4px;
+            background-image: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="4" height="4" viewBox="0 0 4 4"%3E%3Cpath fill="%234a5568" fill-opacity="0.1" d="M1 3h1v1H1V3zm2-2h1v1H3V1z"%3E%3C/path%3E%3C/svg%3E');
         }
-        .sticky-note:hover {
-            transform: scale(1.05) rotate(var(--hover-rotate, 0deg)) !important;
-            z-index: 30;
-            box-shadow: 0 20px 25px rgba(0,0,0,0.2);
+        .main-content-paper:before {
+            background-color: #d8d8d8;
+            box-shadow: 0 0 8px rgba(0,0,0,0.2);
+            left: -5px;
+            top: 4px;
+            transform: rotate(-1.5deg);
         }
-        .sticky-note h3 {
-            font-size: 1rem;
-            font-weight: 600;
-            margin: 0 0 12px 0;
-            padding-bottom: 8px;
-            border-bottom: 1px solid rgba(0,0,0,0.1);
-        }
-
-        /* Positioning the notes */
-        #note-sources {
-            top: 15%; left: -4%;
-            width: 400px;
-            transform: rotate(-6deg);
-            --hover-rotate: -2deg;
-        }
-        #note-upload {
-            display:none;
-            bottom: 10%; left: 5%;
-            width: 260px;
-            transform: rotate(5deg);
-            --hover-rotate: 2deg;
-        }
-        #note-actions {
-            top: 20%; right: 2%;
-            width: 280px;
-            transform: rotate(4deg);
-            --hover-rotate: 1deg;
+        .main-content-paper:after {
+            background-color: #e2e2e2;
+            box-shadow: 0 0 3px rgba(0,0,0,0.2);
+            right: -3px;
+            top: 1px;
+            transform: rotate(1.2deg);
         }
 
-        /* --- STICKY NOTE CONTENT STYLING --- */
-        #doc-list-container {
-            max-height: 200px;
-            overflow-y: auto;
-            display: flex; flex-direction: column; gap: 4px;
-        }
-        .doc-pill { display: contents; }
-        .doc-pill label {
-            display: flex;
-            align-items: center;
-            font-size: 0.9rem;
-            padding: 6px 10px; border-radius: 4px;
-            cursor: pointer; transition: background-color 0.2s;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            position: relative;
-        }
-        .doc-pill label:hover { background-color: rgba(0,0,0,0.05); }
-        .doc-pill input[type="checkbox"] { display: none; }
-
-        .doc-pill label::before {
-            content: '';
-            width: 10px; height: 10px;
-            border-radius: 50%;
-            background-color: transparent;
-            border: 1px solid #cbd5e0;
-            margin-right: 10px;
-            transition: all 0.2s ease;
-            flex-shrink: 0;
-        }
-        .doc-pill input[type="checkbox"]:checked + label {
-            font-weight: 600;
-        }
-        .doc-pill input[type="checkbox"]:checked + label::before {
-            background-color: #ef4444;
-            border-color: #ef4444;
-        }
-
-        #drop-zone {
-            border: 2px dashed #a5b4fc;
-            background-color: #e0e7ff;
-            text-align: center; padding: 20px;
-            cursor: pointer; border-radius: 4px;
-        }
-        #drop-zone p { margin: 0; font-weight: 500; color: #4338ca; }
-        #upload-status { font-size: 0.85rem; margin-top: 8px; color: #4338ca; }
-
-        #analysis-tools-container { display: flex; flex-direction: column; gap: 6px; }
-        .analysis-btn {
-            background: none; border: 1px solid #cbd5e0; border-radius: 6px;
-            padding: 8px 10px; font-size: 0.9rem; cursor: pointer; text-align: left;
-            transition: all 0.2s;
-        }
-        .analysis-btn:hover { background-color: #818cf8; color: white; border-color: #818cf8; }
-
-        /* --- NEW TABLET HEADER STYLES --- */
-        .tablet-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--c-border);
-            flex-shrink: 0;
-        }
-        .header-left, .header-right {
-            flex: 1;
-            display: flex;
-        }
-        .header-center {
-            flex: 2;
+        /* --- HERO SECTION ON PAPER --- */
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin: 0 0 16px 0;
+            line-height: 1.2;
+            color: #1a202c;
             text-align: center;
         }
-        .header-left {
-            justify-content: flex-start;
+        .hero p {
+            font-size: 1.125rem;
+            color: #4a5568;
+            margin-bottom: 48px;
+            max-width: 550px;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: center;
         }
-        .header-right {
-            justify-content: flex-end;
+
+        /* --- Tilted Smartphone --- */
+        .smartphone-wrapper {
+            position: absolute;
+            top: 50%;
+            left: 5%;
+            transform: translateY(-45%) rotate(-12deg);
+            width: 400px;
+            z-index: 20;
+            transition: transform 0.5s var(--ease-out-cubic);
+            cursor: pointer; /* POINTER CURSOR ON HOVER */
         }
-        .tablet-back-btn {
-            background: transparent;
-            border: none;
-            color: var(--c-text-subtle);
+        .smartphone-wrapper:hover {
+            transform: translateY(-50%) rotate(-8deg) scale(1.05);
+        }
+        .smartphone {
+            position: relative; width: 95%; height: 720px; background-color: #111;
+            border: 2px solid #444; border-radius: 40px; padding: 12px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4);
+        }
+        .smartphone-screen {
+            height: 100%; background-color:var(--c-bg) ; border-radius: 30px;
+            overflow: hidden; display: flex; flex-direction: column; position: relative;
+            /* GLOWING EFFECT FOR SCREEN */
+<!--            box-shadow: 0 0 100px 10px rgba(129, 140, 248, 0.3), 0 0 8px 1px rgba(129, 140, 248, 0.2) inset;-->
+        }
+        .smartphone-notch {
+            position: absolute; top: 0px; left: 50%; transform: translateX(-50%);
+            width: 120px; height: 20px; background-color: #111;
+            border-radius: 0 0 10px 10px; z-index: 10;
+        }
+        .smartphone-header { padding: 40px 20px 12px 20px; text-align: center; }
+        .smartphone-header h2 { margin: 0; font-size: 1.25rem; }
+        .smartphone-content { padding: 16px; flex-grow: 1; overflow-y: auto; text-align: center; }
+        .smartphone-content::-webkit-scrollbar { width: 4px; }
+        .smartphone-content::-webkit-scrollbar-thumb { background: var(--c-border); border-radius: 2px; }
+
+        /* --- DROP ZONE IN PHONE --- */
+        #drop-zone {
+            border: 2px dashed var(--c-border);
+            border-radius: 12px;
+            padding: 40px 20px;
             cursor: pointer;
-            padding: 8px;
+            transition: all 0.2s var(--ease-out-cubic);
+            background-color: var(--c-primary);
+        }
+        #drop-zone.dragover { background-color: var(--c-primary-light); border-color: var(--c-primary); transform: scale(1.02); }
+        #drop-zone .icon {
+            width: 48px; height: 48px;
+            background-color: var(--c-primary-light); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto;
+            color: var(--c-primary); transition: transform 0.3s var(--ease-out-cubic);
+        }
+        #drop-zone:hover .icon { transform: scale(1.1); }
+        #drop-zone h3 { font-size: 1rem; font-weight: 600; margin: 0 0 8px 0; color: var(--c-text); }
+        #drop-zone span { font-size: 0.85rem; color: white; }
+        #upload-status { margin-top: 16px; font-weight: 500; min-height: 1.2em; font-size: 0.9rem; }
+
+        /* --- CHAT BUTTON IN PHONE --- */
+        .phone-chat-btn {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 50;
+            width: 50px;
+            height: 50px;
+            background-color: var(--c-primary);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background-color 0.2s, color 0.2s;
-        }
-        .tablet-back-btn:hover {
-            background-color: var(--c-bg-secondary);
-            color: var(--c-text);
-        }
-        .tablet-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--c-text);
-            margin: 0;
-        }
-
-        /* --- CHAT CONTENT & INPUT AREA --- */
-        .chat-container { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
-        #response-area { flex-grow: 1; padding: 24px; overflow-y: auto; }
-        ::-webkit-scrollbar { width: 10px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: var(--c-border); border-radius: 5px; border: 2px solid var(--c-bg); }
-        ::-webkit-scrollbar-thumb:hover { background: var(--c-border-interactive); }
-
-        .placeholder { text-align: center; padding-top: 15vh; color: var(--c-text-subtle); display: flex; flex-direction: column; align-items: center; gap: 8px; }
-        .placeholder svg { width: 64px; height: 64px; opacity: 0.5; }
-
-        .input-area-wrapper { padding: 12px 16px; border-top: 1px solid var(--c-border); background-color: var(--c-bg); flex-shrink: 0; }
-        .input-area { display: flex; align-items: center; max-width: 900px; margin: auto; position: relative; background-color: var(--c-bg-secondary); border: 1px solid var(--c-border); border-radius: 12px; transition: border-color 0.2s, box-shadow 0.2s; }
-        .input-area:focus-within { border-color: var(--c-primary); box-shadow: 0 0 0 3px var(--c-primary-light); }
-
-        #upload-trigger-btn {
-            position: absolute; left: 8px; top: 50%;
-            transform: translateY(-50%); padding: 6px; border-radius: 8px;
-            background-color: var(--c-border); border: none; cursor: pointer;
-            display: flex; color: var(--c-text);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
             transition: all 0.2s var(--ease-out-cubic);
+            color: var(--c-primary-text);
+            text-decoration: none;
         }
-        #upload-trigger-btn:hover { background-color: var(--c-primary); color: var(--c-primary-text); }
+        .phone-chat-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(129, 140, 248, 0.4);
+        }
+        .phone-chat-btn svg {
+            width: 22px;
+            height: 22px;
+        }
 
-        #question { flex-grow: 1; padding: 14px 50px 14px 50px; font-size: 1rem; border: none; outline: none; background: transparent; color: var(--c-text); }
-        #askBtn { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); padding: 8px; border-radius: 8px; background: var(--c-primary); border: none; cursor: pointer; display: flex; color: var(--c-primary-text); transition: transform 0.2s var(--ease-out-cubic); }
-        #askBtn:hover { transform: translateY(-50%) scale(1.1); }
 
-        /* --- MESSAGE BUBBLES (Unchanged) --- */
-        .message { display: flex; gap: 16px; margin-bottom: 24px; max-width: 900px; margin-left: auto; margin-right: auto; align-items: flex-start;  color:white;}
-        .message .icon { width: 50px; height: 50px; flex-shrink: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 500; font-family: 'Roboto Mono', monospace; font-size: 0.8rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border: 2px solid var(--c-bg); }
-        .user-message .icon { background-color: #dbeafe; color: #3b82f6; }
-        .user-message .message-content { background-color: var(--c-panel-bg); border: 1px solid var(--c-border); padding: 0px 16px; border-radius: 18px; line-height: 1.6; }
-        .bot-message .icon { background-color: var(--c-primary); color: var(--c-primary-text); }
-        .bot-message .message-content { background: linear-gradient(135deg, var(--c-panel-bg) 0%, var(--c-bg) 100%); border: 1px solid var(--c-border); border-radius: 18px; line-height: 1.7; width: 100%; overflow: hidden; }
-        .bot-message .message-content > .streaming-text { padding: 12px 16px; }
-        .bot-message .message-content h1, .bot-message .message-content h2, .bot-message .message-content h3 { margin: 1em 0 0.5em; }
-        .bot-message .message-content p { margin: 0; padding-bottom: 0.75em; }
-        .bot-message .message-content p:last-child { padding-bottom: 0; }
-        .bot-message .message-content ul, .bot-message .message-content ol { padding-left: 20px; }
-        .bot-message .message-content li { margin-bottom: 0.5em; }
-        .bot-message .message-content code { font-family: 'Roboto Mono', monospace; background-color: var(--c-bg-secondary); padding: 0.2em 0.4em; border-radius: 4px; font-size: 0.9em; }
-        .bot-message .message-content pre { background-color: var(--c-bg-secondary); border-radius: 8px; padding: 12px; overflow-x: auto; }
-        .bot-message .message-content pre code { padding: 0; background: transparent; }
-        .sources-container { margin-top: 12px; padding: 12px 16px; border-top: 1px solid var(--c-border); background-color: rgba(0,0,0,0.02); }
-        [data-theme="dark"] .sources-container { background-color: rgba(255,255,255,0.02); }
-        .sources-container summary { cursor: pointer; font-weight: 600; color: var(--c-text-subtle); font-size: 0.9rem; list-style-position: inside; }
-        .sources-container summary:hover { color: var(--c-primary); }
-        .sources-content { margin-top: 8px; }
-        .source-tag { display: inline-block; padding: 4px 12px; background-color: var(--c-bg-secondary); border: 1px solid var(--c-border); border-radius: 16px; font-size: 0.8rem; margin: 4px 4px 4px 0; }
-        .blinking-cursor { display: inline-block; width: 3px; height: 1.2rem; background-color: var(--c-primary); animation: blink 1s step-start 0s infinite; position: relative; top: 4px; border-radius: 1px; }
-        @keyframes blink { 50% { opacity: 0; } }
+        /* --- DOCUMENT LIST ON PAPER --- */
+        .document-library h2 {
+            font-size: 1.75rem;
+            color: #1a202c;
+            border-bottom: 2px solid #cbd5e0;
+            padding-bottom: 12px;
+            margin-bottom: 24px;
+        }
+        #doc-list { list-style: none; padding: 0; margin: 0; }
+        .doc-item {
+            padding: 0;
+            border-bottom: none;
+        }
+        .doc-icon {
+            padding: 10px;
+        }
 
-        /* Theme Toggle (Unchanged) */
-        .theme-switch { display: inline-block; height: 24px; position: relative; width: 44px; }
-        .theme-switch input { display:none; }
-        .slider { background-color: var(--c-border); bottom: 0; cursor: pointer; left: 0; position: absolute; right: 0; top: 0; transition: .4s; border-radius: 34px; }
-        .slider:before { background-color: var(--c-bg); content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; position: absolute; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--c-primary); }
-        input:checked + .slider:before { transform: translateX(20px); }
+        /* Style the new link that wraps the content */
+        .doc-viewer-link {
+            display: flex;
+            align-items: center;
+            padding: 16px 12px;
+            text-decoration: none;
+            color: #2d3748;
+            border-radius: 8px;
+            transition: background-color 0.2s ease-in-out;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .doc-item:last-child .doc-viewer-link {
+            border-bottom: none;
+        }
+
+        .doc-viewer-link:hover {
+            background-color: #f7fafc;
+            /* In dark mode, you might use a slightly lighter shade */
+            /* [data-theme="dark"] & { background-color: #2d3748; } */
+        }
+
+        .doc-viewer-link .doc-name {
+            flex-grow: 1; /* Make name take available space */
+        }
+
+        /* Style the new "Analyze" arrow prompt */
+        .analyze-prompt-arrow {
+            font-weight: 600;
+            margin-left: 16px;
+            color: #a0aec0; /* A subtle grey */
+            transition: all 0.2s ease;
+            opacity: 0;
+            transform: translateX(-10px);
+        }
+
+        .doc-viewer-link:hover .analyze-prompt-arrow {
+            opacity: 1;
+            transform: translateX(0);
+            color: #4f46e5; /* Your primary color */
+        }
+
+        /* Hide the old review button if it's still there */
+        .review-btn {
+            display: none;
+        }
 
         /* --- RESPONSIVE STYLES --- */
-        @media (max-width: 1280px) {
-            .sticky-note { display: none; }
-            .tablet-device { height: 100vh; max-height: none; border-radius: 0; padding: 0; }
-            .tablet-screen { border-radius: 0; }
-            body { padding: 0; }
+        @media (max-width: 1300px) {
+            .main-content-paper { transform: translateX(0); }
+            .smartphone-wrapper { left: 10%; }
+        }
+
+        @media (max-width: 1024px) {
+            .desktop-scene {
+                min-height: auto;
+                padding: 2rem 1rem;
+                flex-direction: column;
+                gap: 4rem;
+                align-items: center;
+                justify-content: flex-start;
+            }
+            .main-content-paper {
+                transform: none;
+                margin: 0 auto;
+                width: 100%;
+                max-width: 650px;
+                padding: 24px;
+            }
+            .main-content-paper:before, .main-content-paper:after { display: none; }
+            .hero h1 { font-size: 2.5rem; }
+            .smartphone-wrapper {
+                position: static;
+                transform: none;
+                margin: 2rem auto 0 auto;
+                width: 100%;
+                max-width: 380px;
+                height: 600px;
+            }
+            .smartphone { height: 100%; }
+            .smartphone-wrapper:hover { transform: none; }
         }
     </style>
 </head>
 <body>
 
     <div class="desktop-scene">
+        <main class="main-content-paper">
+            <section class="hero">
+<!--                <h1>BlackL≡tter</h1>-->
+                <h1>AI Policy Analysis</h1>
+                <p>Analyse internal policies, for compliance risks, identification of gaps, and improvements suggestion.</p>
+            </section>
+            <section class="document-library">
+                <h2>Uploaded Documents</h2>
+                <ul id="doc-list">
+                    <!-- Documents will be dynamically loaded here by JS -->
+                </ul>
+            </section>
+        </main>
 
-        <!-- STICKY NOTE: Source Documents -->
-        <div id="note-sources" class="sticky-note">
-            <h3>Source Documents</h3>
-            <div id="doc-list-container">
-                <!-- Pills will be generated by JS here -->
-            </div>
-        </div>
-
-        <!-- STICKY NOTE: Upload Files -->
-        <div id="note-upload" class="sticky-note">
-            <h3>Upload Files</h3>
-            <div id="drop-zone"><p>Drag & drop files here</p></div>
-            <div id="upload-status"></div>
-        </div>
-
-        <!-- STICKY NOTE: Quick Actions -->
-        <div id="note-actions" class="sticky-note">
-             <h3>Quick Actions</h3>
-             <div id="analysis-tools-container">
-                <button class="analysis-btn" data-query="Identify risks and policy gaps within the documents.">Identify policy gaps</button>
-                <button class="analysis-btn" data-query="Highlight possible non-compliance and risky areas in the documents.">Highlight non-compliance</button>
-                <button class="analysis-btn" data-query="Compare if the following documents meets with industry best practices or standards.">Compare to best practices</button>
-                <button class="analysis-btn" data-query="Suggest changes or improvements that can be made to the following documents.">Suggest improvements</button>
-            </div>
-        </div>
-
-        <!-- TABLET: Main Chat Interface -->
-        <div class="tablet-device">
-            <main class="tablet-screen">
-                <div class="tablet-header">
-                    <div class="header-left">
-                        <a href="/" class="tablet-back-btn" title="Go Back">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
-                        </a>
+        <div class="smartphone-wrapper">
+            <div class="smartphone">
+                <div class="smartphone-screen">
+                    <div class="smartphone-notch"></div>
+                    <div class="smartphone-header">
+                        <h2>Upload Documents</h2>
                     </div>
-                    <div class="header-center">
-<!--                        <h2 class="tablet-title">Blackl≡tter</h2>-->
-                         <h1 class="tablet-title">AI Policy Analysis</h1>
-                    </div>
-                    <div class="header-right">
-                        <label class="theme-switch" for="theme-toggle" title="Toggle theme">
-                            <input type="checkbox" id="theme-toggle" />
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                </div>
-                <div class="chat-container">
-                    <div id="response-area">
-                        <div class="placeholder">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
-                            <h3>Chat with your documents here.</h3>
-                            <p>Select your sources from the sticky notes and ask a question to begin.</p>
+                    <div class="smartphone-content">
+                        <div id="drop-zone">
+                            <div class="icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                            </div>
+                            <h3>Drag & Drop Documents</h3>
+                            <span>or click to browse files</span>
                         </div>
+                        <div id="upload-status"></div>
                     </div>
-                    <div class="input-area-wrapper">
-                        <div class="input-area">
-                            <button id="upload-trigger-btn" title="Upload files">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                            </button>
-                            <input type="text" id="question" placeholder="Ask about the selected documents...">
-                            <button id="askBtn" title="Send message">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
-                            </button>
-                        </div>
-                    </div>
+                    <!-- Chat Button inside the phone -->
+                    <a href="/chat" class="phone-chat-btn" title="Start a Chat">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                    </a>
                 </div>
-            </main>
+            </div>
         </div>
     </div>
 
-
 <script>
-    // --- THEME TOGGLE SCRIPT (Unchanged) ---
-    const themeToggle = document.getElementById('theme-toggle');
-    const docElement = document.documentElement;
+    // NO CHANGES TO ANY JAVASCRIPT
 
-    const currentTheme = localStorage.getItem('theme') || 'dark';
-    docElement.setAttribute('data-theme', currentTheme);
-    if (currentTheme === 'dark') {
-        themeToggle.checked = true;
-    }
-
-    themeToggle.addEventListener('change', function() {
-        if (this.checked) {
-            docElement.setAttribute('data-theme', 'dark');
-            localStorage.setItem('theme', 'dark');
-        } else {
-            docElement.setAttribute('data-theme', 'light');
-            localStorage.setItem('theme', 'light');
-        }
-    });
-
-    // --- ORIGINAL CORE LOGIC (Unchanged from previous version) ---
-
-    // --- DOM Elements ---
-    const askBtn = document.getElementById("askBtn");
-    const questionInput = document.getElementById("question");
-    const responseArea = document.getElementById("response-area");
-    const docListContainer = document.getElementById('doc-list-container');
     const dropZone = document.getElementById('drop-zone');
     const uploadStatus = document.getElementById('upload-status');
-    const analysisBtns = document.querySelectorAll('.analysis-btn');
-    const uploadTriggerBtn = document.getElementById('upload-trigger-btn');
+    const docList = document.getElementById('doc-list');
 
-    // --- Analysis Tools Logic ---
-    analysisBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const query = btn.dataset.query;
-            questionInput.value = query;
-            handleAsk();
-        });
-    });
-
-    // --- Document Management ---
     const fetchDocuments = async () => {
         try {
             const res = await fetch('/documents');
-            if (!res.ok) throw new Error('Failed to fetch documents from server.');
             const docs = await res.json();
-            docListContainer.innerHTML = '';
+            docList.innerHTML = '';
+
             if (docs.length === 0) {
-                docListContainer.innerHTML = '<p style="font-size: 0.9rem; color: #4b5563; text-align: center;">No documents yet.</p>';
+                docList.innerHTML = '<li class="doc-item--empty">No documents uploaded yet.</li>';
                 return;
             }
+
             docs.forEach(doc => {
-                const docId = `doc-${doc.replace(/[^a-zA-Z0-9]/g, '-')}`;
-                const pillDiv = document.createElement('div');
-                pillDiv.className = 'doc-pill';
-                pillDiv.innerHTML = `
-                    <input type="checkbox" id="${docId}" name="doc" value="${doc}">
-                    <label for="${docId}" title="${doc}">${doc}</label>
+                const li = document.createElement('li');
+                li.className = 'doc-item'; // The <li> is just a container now
+
+                // Create a single link that holds all the content
+                li.innerHTML = `
+                    <a href="/viewer?file=${encodeURIComponent(doc)}" class="doc-viewer-link" title="Click to analyze: ${doc}">
+                        <div class="doc-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                        </div>
+                        <span class="doc-name">${doc}</span>
+                        <span class="analyze-prompt-arrow">Analyze →</span>
+                    </a>
                 `;
-                docListContainer.appendChild(pillDiv);
+                docList.appendChild(li);
             });
         } catch (error) {
-            console.error(error);
-            docListContainer.innerHTML = `<p style="font-size: 0.9rem; color: var(--c-error);">Error: ${error.message}</p>`;
+            console.error('Error fetching documents:', error);
+            docList.innerHTML = '<li class="doc-item--empty">Could not load documents.</li>';
         }
     };
 
-    // --- Upload Logic ---
-    const upload = async (formData) => {
-        uploadStatus.textContent = 'Uploading and indexing...';
-        uploadStatus.style.color = '#1f2937';
+    const uploadFiles = async (files) => {
+        const formData = new FormData();
+        for (const file of files) {
+            formData.append('file', file);
+        }
+        uploadStatus.textContent = 'Uploading and processing...';
+        uploadStatus.style.color = 'var(--c-text-subtle)';
         try {
             const res = await fetch('/upload', { method: 'POST', body: formData });
             const data = await res.json();
-            if (res.ok) {
-                uploadStatus.textContent = data.success || 'Upload successful!';
-                uploadStatus.style.color = '#4338ca';
-                setTimeout(() => uploadStatus.textContent = '', 4000);
-                fetchDocuments();
-            } else { throw new Error(data.error || 'Unknown upload error'); }
+            if (!res.ok) { throw new Error(data.error || 'Unknown upload error'); }
+            uploadStatus.textContent = data.success;
+            uploadStatus.style.color = 'var(--c-primary)';
+            setTimeout(() => { uploadStatus.textContent = ''; }, 4000);
+            fetchDocuments();
         } catch (error) {
             uploadStatus.textContent = `Upload failed: ${error.message}`;
-            uploadStatus.style.color = '#ef4444';
+            uploadStatus.style.color = 'var(--c-error)';
         }
     };
-    const fileInput = document.createElement('input'); fileInput.type = 'file'; fileInput.hidden = true; fileInput.multiple = true; document.body.appendChild(fileInput);
+
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.multiple = true;
+    fileInput.hidden = true;
+    document.body.appendChild(fileInput);
 
     dropZone.addEventListener('click', () => fileInput.click());
-    uploadTriggerBtn.addEventListener('click', () => fileInput.click());
-    fileInput.addEventListener('change', () => { if (fileInput.files.length) { const fd = new FormData(); for (const f of fileInput.files) { fd.append('file', f); } upload(fd); } });
+    fileInput.addEventListener('change', () => { if (fileInput.files.length > 0) { uploadFiles(fileInput.files); } });
     dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
     dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-    dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); if (e.dataTransfer.files.length) { const fd = new FormData(); for (const f of e.dataTransfer.files) { fd.append('file', f); } upload(fd); } });
+    dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); if (e.dataTransfer.files.length > 0) { uploadFiles(e.dataTransfer.files); } });
 
-
-    // --- Conversational Chat Logic (Unchanged) ---
-    const handleAsk = async () => {
-        const question = questionInput.value.trim();
-        if (!question) return;
-        const selectedDocs = Array.from(document.querySelectorAll('input[name="doc"]:checked')).map(cb => cb.value);
-        if (selectedDocs.length === 0) {
-            alert('Please select at least one source document to analyze.');
-            return;
-        }
-        appendMessage('user', question);
-        questionInput.value = '';
-        const botMessageContainer = appendMessage('bot', '');
-        try {
-            const response = await fetch("/ask", {
-                method: "POST", headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ query: question, selected_docs: selectedDocs })
-            });
-            if (!response.ok) {
-                const errData = await response.json();
-                throw new Error(errData.error || "An unknown server error occurred.");
-            }
-            await processStream(response, botMessageContainer);
-        } catch (error) {
-            console.error("Fetch or streaming error:", error);
-            const messageContent = botMessageContainer.querySelector('.message-content');
-            messageContent.innerHTML = `<div class="streaming-text" style="padding: 12px 16px;"><p style="color: var(--c-error);">Error: ${error.message}</p></div>`;
-        }
-    };
-    const appendMessage = (sender, text) => {
-        if (document.querySelector('.placeholder')) { responseArea.innerHTML = ''; }
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${sender}-message`;
-        const icon = sender === 'user' ? 'YOU' : 'AI';
-        let contentHTML;
-        if (sender === 'user') {
-            const escapedText = text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-            contentHTML = `<p>${escapedText}</p>`;
-        } else {
-            contentHTML = `<div class="streaming-text"><span class="blinking-cursor"></span></div>`;
-        }
-        messageDiv.innerHTML = `<div class="icon">${icon}</div><div class="message-content">${contentHTML}</div>`;
-        responseArea.appendChild(messageDiv);
-        responseArea.scrollTop = responseArea.scrollHeight;
-        return messageDiv;
-    };
-    async function processStream(response, messageContainer) {
-        const streamTarget = messageContainer.querySelector('.streaming-text');
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = '', fullText = '', metadata = null;
-        streamTarget.innerHTML = '';
-        while (true) {
-            const { value, done } = await reader.read();
-            if (done) break;
-            buffer += decoder.decode(value, { stream: true });
-            let newlineIndex;
-            while ((newlineIndex = buffer.indexOf('\n')) !== -1) {
-                const line = buffer.substring(0, newlineIndex).trim();
-                buffer = buffer.substring(newlineIndex + 1);
-                if (line) {
-                    try {
-                        const parsed = JSON.parse(line);
-                        if (parsed.type === 'token') { fullText += parsed.data; streamTarget.innerHTML = marked.parse(fullText + '▋'); }
-                        else if (parsed.type === 'metadata') { metadata = parsed.data; }
-                    } catch (e) { console.error("Error parsing stream line:", line, e); }
-                }
-            }
-            responseArea.scrollTop = responseArea.scrollHeight;
-        }
-        streamTarget.innerHTML = marked.parse(fullText);
-        if (metadata) { renderPostStreamContent(metadata, messageContainer); }
-    }
-    function renderPostStreamContent(data, messageContainer) {
-        if (data.sources && data.sources.length > 0) {
-            const sourcesDiv = document.createElement('div');
-            sourcesDiv.innerHTML = `<details class="sources-container"><summary>View Sources (${data.sources.length})</summary><div class="sources-content">${data.sources.map(s => `<span class="source-tag">${s}</span>`).join('')}</div></details>`;
-            messageContainer.querySelector('.message-content').appendChild(sourcesDiv);
-        }
-        responseArea.scrollTop = responseArea.scrollHeight;
-    }
-
-    // --- Event Listeners and Initial Load ---
-    askBtn.addEventListener("click", handleAsk);
-    questionInput.addEventListener("keypress", (e) => { if (e.key === "Enter") handleAsk(); });
-    document.addEventListener('DOMContentLoaded', () => { fetchDocuments(); });
+    document.addEventListener('DOMContentLoaded', fetchDocuments);
 </script>
+
 </body>
 </html>
