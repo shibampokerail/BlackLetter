@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e  # exit immediately if a command fails
+set -e  # exit if a command fails
 
 
 IMAGE_NAME="policy-ai:1.0.0"
@@ -8,7 +8,7 @@ IMAGE_NAME="policy-ai:1.0.0"
 CONTAINER_NAME="policy-ai"
 
 
-echo "PPulling latest code..."
+echo "Pulling latest code..."
 
 git pull
 
